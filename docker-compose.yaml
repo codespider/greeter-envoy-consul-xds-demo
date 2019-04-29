@@ -7,6 +7,8 @@ services:
     networks:
       - consul-demo
     command: "agent -retry-join consul-server-bootstrap -client 0.0.0.0"
+    expose:
+      - "8500"
 
   consul-agent-2:
     <<: *consul-agent
@@ -38,23 +40,29 @@ services:
   greeter-service:
     image: karthik/greeter-grpc-service:latest
     hostname: greeter-service
-
-  consul-xds:
-    image: consul_envoy_xds_placeholder
-    hostname: consul-xds
-    command: "/opt/consul_envoy_xds/consul_envoy_xds/consul-envoy-xds start"
-    networks:
-      - consul-demo
     environment:
-      - PORT=8053
-      - LOG_LEVEL=DEBUG
-      - CONSUL_CLIENT_HOST=localhost
-      - CONSUL_DC=dc1
-      - CONSUL_TOKEN=""
-      - WATCHED_SERVICE=foo-service,bar_svc
-      - FOO_SERVICE_WHITELISTED_ROUTES=/foo,/fuu
-      - CONSUL_CLIENT_PORT=8500
-      - BAR_SVC_WHITELISTED_ROUTES=/bar
+      - CONSUL_REGISTRATION_ENABLED=TRUE
+      - CONSUL_SERVICE_NAME=greeter
+      - CONSUL_AGENT_HOST=consul-agent-1
+    depends_on:
+      - consul-agent-1
+
+#  consul-xds:
+#    image: consul_envoy_xds_placeholder
+#    hostname: consul-xds
+#    command: "/opt/consul_envoy_xds/consul_envoy_xds/consul-envoy-xds start"
+#    networks:
+#      - consul-demo
+#    environment:
+#      - PORT=8053
+#      - LOG_LEVEL=DEBUG
+#      - CONSUL_CLIENT_HOST=localhost
+#      - CONSUL_DC=dc1
+#      - CONSUL_TOKEN=""
+#      - WATCHED_SERVICE=foo-service,bar_svc
+#      - FOO_SERVICE_WHITELISTED_ROUTES=/foo,/fuu
+#      - CONSUL_CLIENT_PORT=8500
+#      - BAR_SVC_WHITELISTED_ROUTES=/bar
 
 networks:
   consul-demo:
